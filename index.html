@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harshada Birthday Card</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+body {margin:0; padding:0; font-family:'Poppins',sans-serif; background:linear-gradient(135deg,#ff9a9e,#fad0c4,#fbc2eb,#a18cd1); display:flex; justify-content:center; align-items:center; height:100vh; overflow:hidden; color:white; text-align:center;}
+#countdown {font-size:2rem;}
+.card { width:400px; max-width:90%; height:350px; background: rgba(255,255,255,0.15); backdrop-filter: blur(15px); border-radius:20px; text-align:center; color:white; box-shadow:0 20px 50px rgba(0,0,0,0.3); padding:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:all 0.8s ease; position:relative; display:none;}
+h1{margin-bottom:10px;}
+p{margin-bottom:20px;}
+button{padding:12px 25px; border:none; border-radius:25px; background:#ff4b7d; color:white; cursor:pointer; font-size:1rem; transition:0.3s;}
+button:hover{transform:scale(1.1); background:#ff1e63;}
+.cake{width:150px; height:150px; position:relative; margin:20px auto;}
+.cake-base{width:150px; height:80px; background:#ff4b7d; border-radius:10px 10px 20px 20px; position:absolute; bottom:0;}
+.candle{width:10px; height:30px; background:#ffea00; border-radius:3px; position:absolute; top:0; cursor:pointer;}
+.flame{width:10px; height:10px; background:radial-gradient(circle,#ffd500,#ff6e00); border-radius:50%; position:absolute; top:-12px; left:0; animation:flameFlicker 0.2s infinite alternate;}
+@keyframes flameFlicker{0%{transform:translateX(0) scale(1)}50%{transform:translateX(2px) scale(1.1)}100%{transform:translateX(-1px) scale(0.9)}}
+#confetti{position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1;}
+</style>
+</head>
+<body>
+
+<div id="countdown"></div>
+
+<div class="card" id="card">
+  <div id="pageContent"></div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<audio id="birthdayMusic" loop>
+  <source src="https://www2.cs.uic.edu/~i101/SoundFiles/BirthdaySong.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// Countdown date (17 March this year)
+const now = new Date();
+const year = now.getFullYear();
+const birthdayDate = new Date(year, 2, 17, 0, 0, 0); // March = 2 (0-indexed)
+const countdownEl = document.getElementById('countdown');
+const card = document.getElementById('card');
+const pageContent = document.getElementById('pageContent');
+const music = document.getElementById('birthdayMusic');
+const canvas=document.getElementById("confetti");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+let confettiPieces=[];
+
+// Initialize confetti
+function initConfetti(){
+  confettiPieces=[];
+  for(let i=0;i<100;i++){ confettiPieces.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,size:Math.random()*6+4,speed:Math.random()*2+1,color:`hsl(${Math.random()*360},100%,70%)`}); }  
+}
+function drawConfetti(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  confettiPieces.forEach(p=>{p.y+=p.speed;if(p.y>canvas.height)p.y=0;ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);});
+  requestAnimationFrame(drawConfetti);
+}
+
+// Countdown
+function updateCountdown(){
+  const now = new Date();
+  let diff = birthdayDate - now;
+  if(diff<=0){
+    countdownEl.style.display='none';
+    card.style.display='flex';
+    showPage();
+    return;
+  }
+  const days = Math.floor(diff/1000/60/60/24);
+  const hours = Math.floor(diff/1000/60/60)%24;
+  const minutes = Math.floor(diff/1000/60)%60;
+  const seconds = Math.floor(diff/1000)%60;
+  countdownEl.innerHTML=`🎂 Birthday Countdown: ${days}d ${hours}h ${minutes}m ${seconds}s 🎂`;
+}
+setInterval(updateCountdown,1000);
+updateCountdown();
+
+// Pages logic
+let page=1;
+function showPage(){
+  if(page===1){
+    pageContent.innerHTML=`<h1>🌸🎉 Happy Birthday Harshada! 🎉🌸</h1><button id="nextBtn">Open Card ✨</button>`;
+    document.getElementById('nextBtn').onclick=()=>{
+      page=2; music.play().catch(()=>{}); showPage();
+    }
+  } else if(page===2){
+    pageContent.innerHTML=`<h1>🎉 Happy Birthday Harshada</h1><p>Click all the candles to blow them out! 💨</p>
+    <div class="cake" id="cake">
+      <div class="candle" id="c1" style="left:20%"><div class="flame"></div></div>
+      <div class="candle" id="c2" style="left:45%"><div class="flame"></div></div>
+      <div class="candle" id="c3" style="left:70%"><div class="flame"></div></div>
+      <div class="cake-base"></div>
+    </div>
+    <p id="wishText"></p>
+    <button id="nextBtn">Open Surprise 🎁</button>`;
+    let blown=0;
+    ['c1','c2','c3'].forEach(id=>document.getElementById(id).onclick=()=>{
+      document.getElementById(id).style.display='none';
+      blown++;
+      if(blown===3){document.getElementById('wishText').innerText="🎉 All candles blown! Make a wish! ✨"; initConfetti(); drawConfetti();}
+    });
+    document.getElementById('nextBtn').onclick=()=>{
+      page=3; showPage();
+    }
+  } else if(page===3){
+    pageContent.innerHTML=`<h1>💖 Surprise #1</h1>
+    <p>You are seriously one of the most amazing people ✨ Your yedapan = 10/10 💅 Your vichaar = legendary 😌</p>
+    <button id="nextBtn">Next Surprise ➡️</button>`;
+    document.getElementById('nextBtn').onclick=()=>{
+      page=4; showPage();
+    }
+  } else if(page===4){
+    pageContent.innerHTML=`<h1>🌸 Final Surprise</h1>
+    <p>Happy Birthday Harshada(buutki) 🎂 May your year be full of success, happiness, memories, and lots of fun ✨ Stay iconic, stay amazing 💖</p>
+    <button id="celebrateBtn">Celebrate 🎉</button>`;
+    document.getElementById('celebrateBtn').onclick=()=>{
+      initConfetti(); drawConfetti();
+      const cakeClone = document.getElementById('cake').cloneNode(true);
+      cakeClone.style.position='absolute'; cakeClone.style.top='50%'; cakeClone.style.left='50%';
+      cakeClone.style.transform='translate(-50%,-50%) scale(1)'; cakeClone.style.zIndex='10';
+      document.body.appendChild(cakeClone);
+      setTimeout(()=>{ cakeClone.style.transform='translate(-50%,-60%) scale(2)'; },50);
+      setTimeout(()=>{ cakeClone.remove(); },2500);
+    }
+  }
+}
+
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
+</script>
+
+</body>
+</html>
